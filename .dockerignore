@@ -11,5 +11,4 @@ dist/
 build/
 .git/
 .gitignore
-.alembic/
-alembic.ini
+.DS_Store

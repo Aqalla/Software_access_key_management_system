@@ -1,14 +1,16 @@
 # Software Access Key Management System
 
-A Flask-based REST API service for managing educational API keys with SQLAlchemy and Alembic.
+A Flask-based web application for managing educational API keys with SQLAlchemy, Alembic, and a beautiful frontend.
 
 ## Features
 
-- User registration and authentication (Basic Auth)
+- User registration and authentication (Session-based)
+- Beautiful web interface with modern design
 - API key generation with expiration dates
 - API key revocation
 - API key validation
 - PostgreSQL database with Alembic migrations
+- REST API endpoints (Basic Auth)
 
 ## Tech Stack
 
@@ -18,6 +20,7 @@ A Flask-based REST API service for managing educational API keys with SQLAlchemy
 - PostgreSQL 16
 - Pydantic 2.10.4
 - Docker & Docker Compose
+- HTML5 & CSS3 (Custom modern design)
 
 ## Project Structure
 
@@ -25,10 +28,20 @@ A Flask-based REST API service for managing educational API keys with SQLAlchemy
 .
 ├── src/
 │   ├── database.py    # Database models and session management
-│   ├── routes.py      # REST API endpoints
+│   ├── routes.py      # REST API endpoints & Web routes
 │   ├── schemas.py     # Pydantic schemas for validation
 │   ├── service.py     # Business logic layer
 │   └── utils.py       # Utility functions (key generation, hashing)
+├── templates/         # HTML templates for web interface
+│   ├── base.html      # Base template with navigation
+│   ├── register.html  # Registration page
+│   ├── login.html     # Login page
+│   ├── dashboard.html # API keys dashboard
+│   ├── create_key.html # Create new API key
+│   └── validate.html  # Validate API key
+├── static/
+│   └── css/
+│       └── style.css  # Custom CSS styling
 ├── alembic/           # Database migrations
 ├── main.py            # Application entry point
 ├── docker-compose.yml # Docker services configuration
@@ -43,18 +56,41 @@ A Flask-based REST API service for managing educational API keys with SQLAlchemy
 docker-compose up -d
 ```
 
-2. Initialize the database (run inside the web container):
+2. Wait for PostgreSQL to be ready, then initialize the database:
 ```bash
 docker-compose exec web alembic upgrade head
 ```
 
-3. The API will be available at `http://localhost:5000`
+3. The web interface will be available at `http://localhost:5001`
+
+## Web Interface
+
+The application includes a beautiful web interface accessible at `http://localhost:5001`
+
+### Web Pages
+
+1. **/** - Redirects to login or dashboard based on auth status
+2. **/api/register** - Registration page (GET/POST)
+3. **/api/login** - Login page (GET/POST)
+4. **/api/dashboard** - Dashboard with list of API keys (requires login)
+5. **/api/create-key** - Create new API key page (requires login)
+6. **/api/validate** - Validate API key page (public)
+7. **/api/logout** - Logout
+
+### Features
+
+- Modern gradient design with glassmorphism effects
+- Responsive layout for mobile devices
+- Flash messages for user feedback
+- One-click key copying
+- Visual status badges for keys
+- Auto-hiding notifications
 
 ## API Endpoints
 
 ### Authentication
 
-All endpoints except `/api/users/register` and `/api/api-keys/validate` require Basic Authentication.
+API endpoints (JSON) use Basic Authentication. Web interface uses session-based authentication.
 
 ### 1. Register User
 **POST** `/api/users/register`
@@ -173,7 +209,17 @@ Response:
 }
 ```
 
-## Example Usage with cURL
+## Example Usage
+
+### Web Interface
+
+1. Open `http://localhost:5000` in your browser
+2. Click "Регистрация" to create an account
+3. Login with your credentials
+4. Create API keys from the dashboard
+5. Validate keys using the "Проверить ключ" page
+
+### API with cURL
 
 ```bash
 # Register a user

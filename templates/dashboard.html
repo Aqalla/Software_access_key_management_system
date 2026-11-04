@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - KeyManager{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-slate-900 mb-2">Мои API ключи</h1>
+            <p class="text-slate-500">Управляйте своими ключами доступа</p>
+        </div>
+        <a href="/api/create-key" class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 rounded-xl shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:shadow-indigo-500/30 transition-all duration-200 transform hover:-translate-y-0.5">
+            <i data-lucide="plus" class="w-5 h-5"></i>
+            Создать ключ
+        </a>
+    </div>
+
+    {% if keys %}
+    <div class="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr class="bg-slate-50 border-b border-slate-200">
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Название</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Ключ</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider hidden sm:table-cell">Создан</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider hidden md:table-cell">Истекает</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Статус</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Действия</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for key in keys %}
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-6 py-4">
+                            <div class="font-medium text-slate-900">{{ key.name }}</div>
+                            {% if key.description %}
+                            <div class="text-sm text-slate-500 mt-1">{{ key.description }}</div>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4">
+                            <button onclick="showKeyModal('{{ key.key_value }}')" class="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm font-mono text-slate-600 transition-all duration-200">
+                                <i data-lucide="eye" class="w-4 h-4"></i>
+                                Показать
+                            </button>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-slate-600 hidden sm:table-cell">
+                            {{ key.created_at.strftime('%d.%m.%Y %H:%M') }}
+                        </td>
+                        <td class="px-6 py-4 text-sm text-slate-600 hidden md:table-cell">
+                            {% if key.expires_at %}
+                                {{ key.expires_at.strftime('%d.%m.%Y %H:%M') }}
+                            {% else %}
+                                <span class="text-slate-400">Бессрочно</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4">
+                            {% if key.is_revoked %}
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full bg-rose-50 text-rose-700 border border-rose-200">
+                                    <i data-lucide="ban" class="w-3.5 h-3.5"></i>
+                                    Отозван
+                                </span>
+                            {% elif not key.is_active %}
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                                    <i data-lucide="circle-off" class="w-3.5 h-3.5"></i>
+                                    Неактивен
+                                </span>
+                            {% elif key.expires_at and key.expires_at < now %}
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                                    <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+                                    Истёк
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                    <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i>
+                                    Активен
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4">
+                            {% if not key.is_revoked and key.is_active %}
+                            <form method="POST" action="/api/keys/{{ key.id }}/revoke" class="inline">
+                                <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-all duration-200" onclick="return confirm('Вы уверены, что хотите отозвать этот ключ?')">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    Отозвать
+                                </button>
+                            </form>
+                            {% else %}
+                            <span class="text-slate-400 text-sm">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 p-12 text-center">
+        <div class="w-20 h-20 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <i data-lucide="key" class="w-10 h-10 text-slate-400"></i>
+        </div>
+        <h3 class="text-xl font-semibold text-slate-900 mb-2">Нет API ключей</h3>
+        <p class="text-slate-500 mb-6">У вас пока нет созданных API ключей</p>
+        <a href="/api/create-key" class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 rounded-xl shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:shadow-indigo-500/30 transition-all duration-200 transform hover:-translate-y-0.5">
+            <i data-lucide="plus" class="w-5 h-5"></i>
+            Создать первый ключ
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal for viewing key -->
+<div id="keyModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50">
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-lg w-full mx-4 p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-xl font-bold text-slate-900">API ключ</h3>
+            <button onclick="hideKeyModal()" class="p-2 hover:bg-slate-100 rounded-lg transition-colors">
+                <i data-lucide="x" class="w-5 h-5 text-slate-500"></i>
+            </button>
+        </div>
+        <div class="bg-slate-50 rounded-xl p-4 mb-4">
+            <code id="keyValue" class="block text-sm font-mono text-slate-700 break-all"></code>
+        </div>
+        <div class="flex gap-3">
+            <button onclick="copyKey()" class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 rounded-xl transition-all duration-200">
+                <i data-lucide="copy" class="w-4 h-4"></i>
+                Копировать
+            </button>
+            <button onclick="hideKeyModal()" class="px-4 py-2.5 text-sm font-medium text-slate-600 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all duration-200">
+                Закрыть
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function showKeyModal(keyValue) {
+    document.getElementById('keyValue').textContent = keyValue;
+    document.getElementById('keyModal').classList.remove('hidden');
+    document.getElementById('keyModal').classList.add('flex');
+    lucide.createIcons();
+}
+
+function hideKeyModal() {
+    document.getElementById('keyModal').classList.add('hidden');
+    document.getElementById('keyModal').classList.remove('flex');
+}
+
+function copyKey() {
+    const keyText = document.getElementById('keyValue').textContent;
+    navigator.clipboard.writeText(keyText).then(() => {
+        alert('Ключ скопирован в буфер обмена!');
+    }).catch(err => {
+        console.error('Ошибка копирования:', err);
+    });
+}
+</script>
+{% endblock %}

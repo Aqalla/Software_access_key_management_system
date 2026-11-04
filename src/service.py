@@ -36,6 +36,8 @@ class ApiKeyService:
         expires_at = None
         if api_key.expires_in_days:
             expires_at = calculate_expiration_date(api_key.expires_in_days)
+        elif api_key.expires_at:
+            expires_at = api_key.expires_at
 
         db_key = ApiKey(
             key_value=key_value,

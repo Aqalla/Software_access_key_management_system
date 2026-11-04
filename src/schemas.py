@@ -22,6 +22,7 @@ class ApiKeyCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
     description: Optional[str] = Field(None, max_length=500)
     expires_in_days: Optional[int] = Field(None, gt=0)
+    expires_at: Optional[datetime] = None
 
 
 class ApiKeyResponse(BaseModel):
